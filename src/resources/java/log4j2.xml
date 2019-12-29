@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+    <properties>
+        <property name="LOG_HOME">/Users/ishare/ishare/project/spring-cloud-space/LogStudy/log</property>
+        <property name="FILE_NAME">mylog</property>
+        <property name="log.sql.level">debug</property>
+        <property name="bizLogLevel">debug</property>
+    </properties>
+
+	<!-- 设置输出源 -->
+    <Appenders>
+        <!-- 控制台 -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS}, %X{local_ip},spring_springboot,%X{trace_id},%-8level  [%t]  -%C:%L - %msg%n"/>
+        </Console>
+
+        <!--  添加过滤器ThresholdFilter,可以有选择的输出某个级别以上的类别  onMatch="ACCEPT" onMismatch="DENY"意思是匹配就接受,否则直接拒绝  -->
+        <File name="ERROR" fileName="${LOG_HOME}/error.log" append="true">
+            <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="%d{yyyy.MM.dd 'at' HH:mm:ss z} %-5level %class{36} %L %M - %msg%xEx%n"/>
+        </File>
+
+        <!-- 这个会打印出所有的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档 -->
+        <RollingFile name="AllRollingFile" fileName="${LOG_HOME}/${FILE_NAME}.log"
+                     filePattern="${LOG_HOME}/$${date:yyyy-MM}/${FILE_NAME}-%d{MM-dd-yyyy}-%i.log.gz">
+            <PatternLayout charset="UTF-8"
+                           pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} ,%X{local_ip},credit-report-server,%X{trace_id} %-5level - %c:%line - %t - %msg%n"/>
+            <Filters>
+                <ThresholdFilter level="${bizLogLevel}"/>
+            </Filters>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="2048M"/>
+            </Policies>
+            <DefaultRolloverStrategy max="1"/>
+        </RollingFile>
+    </Appenders>
+
+    <!-- 设置日志级别 -->
+    <!-- 哪个包下的日志/什么级别的日志/输出到哪里去 -->
+    <Loggers>
+        <!-- 设置全局日志-->
+        <Root level="debug">
+            <AppenderRef ref="Console"/>  
+            <AppenderRef ref="ERROR"/>
+            <AppenderRef ref="AllRollingFile"/>
+        </Root>
+        <!-- 设置某个包下打印日志的级别 -->
+        <logger name="com.*" level="${bizLogLevel}" additivity="false">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="BizRollingFile"/>
+        </logger>
+    </Loggers>
+</Configuration>
